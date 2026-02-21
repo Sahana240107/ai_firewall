@@ -52,14 +52,14 @@ train_encodings = tokenizer(
     train_texts,
     truncation=True,
     padding=True,
-    max_length=128
+    max_length=64
 )
 
 val_encodings = tokenizer(
     val_texts,
     truncation=True,
     padding=True,
-    max_length=128
+    max_length=64
 )
 
 
@@ -120,8 +120,8 @@ training_args = TrainingArguments(
     eval_strategy="epoch",          # <-- changed
     save_strategy="epoch",
     learning_rate=2e-5,
-    per_device_train_batch_size=16,
-    per_device_eval_batch_size=16,
+    per_device_train_batch_size=4,
+    per_device_eval_batch_size=4,
     num_train_epochs=5,
     weight_decay=0.01,
     load_best_model_at_end=True,

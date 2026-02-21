@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Redactron — Your Prompts, Declassified</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Montserrat:wght@400;500;600;700&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg:        #1a1a2e;
+      --card:      #252628;
+      --orange:    #ECAD81;
+      --orange2:   #d4845a;
+      --olive:     #888B5D;
+      --light:     #FCD7BD;
+      --text:      #e8e0d5;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Montserrat', sans-serif;
+      overflow-x: hidden;
+    }
+
+    /* ── NOISE TEXTURE OVERLAY ── */
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.4;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 48px;
+      background: rgba(26,26,46,0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(236,173,129,0.1);
+    }
+
+    .nav-logo {
+      font-family: 'Courier Prime', monospace;
+      font-weight: 700;
+      font-size: 20px;
+      letter-spacing: 4px;
+      color: var(--orange);
+    }
+
+    .nav-links a {
+      color: var(--olive);
+      text-decoration: none;
+      font-size: 12px;
+      letter-spacing: 2px;
+      margin-left: 32px;
+      font-weight: 600;
+      text-transform: uppercase;
+      transition: color 0.3s;
+    }
+
+    .nav-links a:hover { color: var(--orange); }
+
+    /* ── HERO ── */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 120px 24px 80px;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Glow blob behind logo */
+    .hero::after {
+      content: "";
+      position: absolute;
+      width: 500px;
+      height: 500px;
+      background: radial-gradient(circle, rgba(236,173,129,0.08) 0%, transparent 70%);
+      border-radius: 50%;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -55%);
+      pointer-events: none;
+    }
+
+    /* ── SVG LOGO ── */
+    .logo-wrap {
+      margin-bottom: 32px;
+      animation: fadeDown 0.9s ease both;
+    }
+
+    .logo-wrap svg { overflow: visible; }
+
+    @keyframes fadeDown {
+      from { opacity: 0; transform: translateY(-24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .hero-tagline {
+      font-family: 'Courier Prime', monospace;
+      font-size: 13px;
+      letter-spacing: 5px;
+      color: var(--olive);
+      text-transform: uppercase;
+      margin-bottom: 28px;
+      animation: fadeUp 1s 0.2s ease both;
+    }
+
+    .hero-desc {
+      max-width: 560px;
+      font-size: 15px;
+      line-height: 1.8;
+      color: rgba(232,224,213,0.75);
+      margin-bottom: 48px;
+      animation: fadeUp 1s 0.35s ease both;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .btn-download {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: linear-gradient(135deg, var(--orange), var(--orange2));
+      color: var(--card);
+      font-family: 'Courier Prime', monospace;
+      font-weight: 700;
+      font-size: 14px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      text-decoration: none;
+      padding: 16px 36px;
+      border-radius: 4px;
+      transition: transform 0.25s, box-shadow 0.25s;
+      box-shadow: 0 8px 32px rgba(236,173,129,0.3);
+      animation: fadeUp 1s 0.5s ease both;
+    }
+
+    .btn-download:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 16px 40px rgba(236,173,129,0.45);
+    }
+
+    .btn-download svg { flex-shrink: 0; }
+
+    /* ── DIVIDER ── */
+    .divider {
+      width: 60px;
+      height: 2px;
+      background: linear-gradient(90deg, var(--orange), var(--olive));
+      margin: 0 auto 64px;
+    }
+
+    /* ── SECTION ── */
+    section {
+      position: relative;
+      z-index: 1;
+      padding: 80px 24px;
+    }
+
+    .section-label {
+      font-family: 'Courier Prime', monospace;
+      font-size: 10px;
+      letter-spacing: 5px;
+      color: var(--olive);
+      text-transform: uppercase;
+      text-align: center;
+      margin-bottom: 12px;
+    }
+
+    .section-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 36px;
+      color: var(--orange);
+      text-align: center;
+      margin-bottom: 16px;
+    }
+
+    .section-sub {
+      text-align: center;
+      color: rgba(232,224,213,0.6);
+      font-size: 14px;
+      max-width: 480px;
+      margin: 0 auto 56px;
+      line-height: 1.7;
+    }
+
+    /* ── HOW IT WORKS ── */
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 24px;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    .step-card {
+      background: var(--card);
+      border: 1px solid rgba(236,173,129,0.12);
+      border-radius: 16px;
+      padding: 32px 24px;
+      text-align: center;
+      transition: transform 0.3s, border-color 0.3s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .step-card::before {
+      content: "";
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, var(--orange), var(--olive));
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .step-card:hover { transform: translateY(-6px); border-color: rgba(236,173,129,0.3); }
+    .step-card:hover::before { opacity: 1; }
+
+    .step-number {
+      font-family: 'Courier Prime', monospace;
+      font-size: 11px;
+      letter-spacing: 3px;
+      color: var(--olive);
+      margin-bottom: 16px;
+    }
+
+    .step-icon {
+      width: 52px;
+      height: 52px;
+      background: rgba(236,173,129,0.1);
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 16px;
+      font-size: 24px;
+    }
+
+    .step-card h3 {
+      font-family: 'Playfair Display', serif;
+      font-size: 18px;
+      color: var(--orange);
+      margin-bottom: 10px;
+    }
+
+    .step-card p {
+      font-size: 13px;
+      color: rgba(232,224,213,0.65);
+      line-height: 1.7;
+    }
+
+    /* ── REDACTION DEMO ── */
+    .demo-wrap {
+      max-width: 640px;
+      margin: 0 auto;
+      background: var(--card);
+      border: 1px solid rgba(236,173,129,0.15);
+      border-radius: 16px;
+      padding: 32px;
+    }
+
+    .demo-row {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    .demo-row:last-child { margin-bottom: 0; }
+
+    .demo-label {
+      font-family: 'Courier Prime', monospace;
+      font-size: 10px;
+      letter-spacing: 2px;
+      color: var(--olive);
+      width: 64px;
+      flex-shrink: 0;
+    }
+
+    .demo-text {
+      font-family: 'Courier Prime', monospace;
+      font-size: 13px;
+      background: rgba(255,255,255,0.04);
+      border-radius: 8px;
+      padding: 10px 14px;
+      flex: 1;
+      color: rgba(232,224,213,0.8);
+      border: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .demo-text.redacted {
+      color: var(--orange);
+      border-color: rgba(236,173,129,0.2);
+    }
+
+    .demo-arrow { color: var(--olive); font-size: 18px; }
+
+    /* ── INSTALL STEPS ── */
+    .install-steps {
+      max-width: 640px;
+      margin: 0 auto;
+      counter-reset: install;
+    }
+
+    .install-step {
+      display: flex;
+      gap: 20px;
+      margin-bottom: 28px;
+      align-items: flex-start;
+    }
+
+    .install-num {
+      counter-increment: install;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: rgba(236,173,129,0.12);
+      border: 1.5px solid var(--orange);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Courier Prime', monospace;
+      font-size: 13px;
+      color: var(--orange);
+      flex-shrink: 0;
+      font-weight: 700;
+    }
+
+    .install-text h4 {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--light);
+      margin-bottom: 4px;
+      letter-spacing: 0.5px;
+    }
+
+    .install-text p {
+      font-size: 12px;
+      color: rgba(232,224,213,0.55);
+      line-height: 1.6;
+    }
+
+    .install-text code {
+      font-family: 'Courier Prime', monospace;
+      background: rgba(236,173,129,0.1);
+      color: var(--orange);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 11px;
+    }
+
+    /* ── TEAM ── */
+    .team-wrap {
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+      flex-wrap: wrap;
+      max-width: 700px;
+      margin: 0 auto;
+    }
+
+    .team-card {
+      background: var(--card);
+      border: 1px solid rgba(136,139,93,0.2);
+      border-radius: 16px;
+      padding: 28px 36px;
+      text-align: center;
+      min-width: 180px;
+      transition: transform 0.3s, border-color 0.3s;
+    }
+
+    .team-card:hover { transform: translateY(-4px); border-color: var(--olive); }
+
+    .team-avatar {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--orange), var(--olive));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Playfair Display', serif;
+      font-size: 20px;
+      color: var(--card);
+      margin: 0 auto 12px;
+      font-weight: 700;
+    }
+
+    .team-card h4 {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--light);
+      margin-bottom: 4px;
+    }
+
+    .team-card p {
+      font-size: 11px;
+      color: var(--olive);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      padding: 40px 24px;
+      border-top: 1px solid rgba(236,173,129,0.08);
+      font-family: 'Courier Prime', monospace;
+      font-size: 11px;
+      letter-spacing: 2px;
+      color: rgba(136,139,93,0.6);
+    }
+
+    footer span { color: var(--orange); }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">[ REDACTRON ]</div>
+  <div class="nav-links">
+    <a href="#how-it-works">How It Works</a>
+    <a href="#install">Install</a>
+    <a href="#team">Team</a>
+    <a href="https://github.com/Sahana240107/ai_firewall" target="_blank">GitHub</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+
+  <!-- INLINE SVG LOGO -->
+  <div class="logo-wrap">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 140" width="480" height="112">
+      <defs>
+        <linearGradient id="tg" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" style="stop-color:#ECAD81"/>
+          <stop offset="100%" style="stop-color:#d4845a"/>
+        </linearGradient>
+      </defs>
+      <!-- LEFT BRACKET -->
+      <rect x="40" y="20" width="7" height="100" rx="1" fill="#ECAD81"/>
+      <rect x="40" y="20" width="26" height="7" rx="1" fill="#ECAD81"/>
+      <rect x="40" y="113" width="26" height="7" rx="1" fill="#ECAD81"/>
+      <!-- Left circuit -->
+      <circle cx="30" cy="70" r="4" fill="none" stroke="#888B5D" stroke-width="2"/>
+      <line x1="34" y1="70" x2="40" y2="70" stroke="#888B5D" stroke-width="2"/>
+      <circle cx="20" cy="55" r="3" fill="none" stroke="#888B5D" stroke-width="1.5"/>
+      <line x1="23" y1="55" x2="40" y2="55" stroke="#888B5D" stroke-width="1.5" stroke-dasharray="3,2"/>
+      <circle cx="20" cy="85" r="3" fill="none" stroke="#888B5D" stroke-width="1.5"/>
+      <line x1="23" y1="85" x2="40" y2="85" stroke="#888B5D" stroke-width="1.5" stroke-dasharray="3,2"/>
+      <!-- RIGHT BRACKET -->
+      <rect x="553" y="20" width="7" height="100" rx="1" fill="#ECAD81"/>
+      <rect x="534" y="20" width="26" height="7" rx="1" fill="#ECAD81"/>
+      <rect x="534" y="113" width="26" height="7" rx="1" fill="#ECAD81"/>
+      <!-- Right circuit -->
+      <circle cx="570" cy="70" r="4" fill="none" stroke="#888B5D" stroke-width="2"/>
+      <line x1="560" y1="70" x2="566" y2="70" stroke="#888B5D" stroke-width="2"/>
+      <circle cx="580" cy="55" r="3" fill="none" stroke="#888B5D" stroke-width="1.5"/>
+      <line x1="560" y1="55" x2="577" y2="55" stroke="#888B5D" stroke-width="1.5" stroke-dasharray="3,2"/>
+      <circle cx="580" cy="85" r="3" fill="none" stroke="#888B5D" stroke-width="1.5"/>
+      <line x1="560" y1="85" x2="577" y2="85" stroke="#888B5D" stroke-width="1.5" stroke-dasharray="3,2"/>
+      <!-- Text -->
+      <text x="300" y="95" font-family="'Courier New',monospace" font-size="58" font-weight="700" letter-spacing="6" text-anchor="middle" fill="url(#tg)">REDACTRON</text>
+    </svg>
+  </div>
+
+  <p class="hero-tagline">Your Prompts · Declassified</p>
+  <p class="hero-desc">
+    A real-time, ML-powered Chrome extension that detects and redacts sensitive information before your prompts ever leave the browser — across every AI platform.
+  </p>
+
+  <a class="btn-download" href="https://github.com/Sahana240107/ai_firewall/releases/latest/download/redactron.zip">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+      <polyline points="7 10 12 15 17 10"/>
+      <line x1="12" y1="15" x2="12" y2="3"/>
+    </svg>
+    Download Extension
+  </a>
+
+</section>
+
+<!-- HOW IT WORKS -->
+<section id="how-it-works">
+  <p class="section-label">Under the Hood</p>
+  <h2 class="section-title">How It Works</h2>
+  <p class="section-sub">Two layers of protection work together to keep your sensitive data out of AI prompts.</p>
+  <div class="divider"></div>
+
+  <div class="steps">
+    <div class="step-card">
+      <p class="step-number">01</p>
+      <div class="step-icon">⌨️</div>
+      <h3>You Type</h3>
+      <p>As you type into any AI interface — ChatGPT, Gemini, Claude — Redactron silently monitors your input in real time.</p>
+    </div>
+    <div class="step-card">
+      <p class="step-number">02</p>
+      <div class="step-icon">🧠</div>
+      <h3>ML Analysis</h3>
+      <p>Your prompt is sent to a fine-tuned DistilBERT model that classifies it as Safe, PII, or Sensitive based on context and intent.</p>
+    </div>
+    <div class="step-card">
+      <p class="step-number">03</p>
+      <div class="step-icon">🔍</div>
+      <h3>Rule Engine</h3>
+      <p>A regex-based rule layer catches structured patterns like emails, phone numbers, Aadhaar numbers, and API keys.</p>
+    </div>
+    <div class="step-card">
+      <p class="step-number">04</p>
+      <div class="step-icon">🛡️</div>
+      <h3>Smart Redaction</h3>
+      <p>If a risk is detected, your popup alerts you. Click Redact and sensitive parts are replaced with <strong style="color:var(--orange)">[EMAIL]</strong>, <strong style="color:var(--orange)">[PHONE]</strong>, <strong style="color:var(--orange)">[API_KEY]</strong> — so you can continue safely.</p>
+    </div>
+  </div>
+
+  <!-- Demo block -->
+  <div class="demo-wrap" style="margin-top: 56px;">
+    <p class="section-label" style="text-align:left; margin-bottom:20px;">Live Example</p>
+    <div class="demo-row">
+      <span class="demo-label">BEFORE</span>
+      <span class="demo-text">My email is sahana@gmail.com and my API key is sk-abc123xyz789abc123xyz789abc123</span>
+    </div>
+    <div class="demo-row" style="justify-content:center; margin: 0 0 16px 80px;">
+      <span class="demo-arrow">↓ Redactron</span>
+    </div>
+    <div class="demo-row">
+      <span class="demo-label">AFTER</span>
+      <span class="demo-text redacted">My email is [EMAIL] and my API key is [API_KEY]</span>
+    </div>
+  </div>
+</section>
+
+<!-- INSTALL -->
+<section id="install" style="background: rgba(255,255,255,0.015);">
+  <p class="section-label">Get Started</p>
+  <h2 class="section-title">Install in 4 Steps</h2>
+  <p class="section-sub">No Chrome Web Store needed. Install directly in under a minute.</p>
+  <div class="divider"></div>
+
+  <div class="install-steps">
+    <div class="install-step">
+      <div class="install-num">1</div>
+      <div class="install-text">
+        <h4>Download the Extension</h4>
+        <p>Click the Download button above to get the latest <code>redactron.zip</code> from GitHub Releases.</p>
+      </div>
+    </div>
+    <div class="install-step">
+      <div class="install-num">2</div>
+      <div class="install-text">
+        <h4>Unzip the File</h4>
+        <p>Extract the zip to a folder on your computer. Remember where you saved it.</p>
+      </div>
+    </div>
+    <div class="install-step">
+      <div class="install-num">3</div>
+      <div class="install-text">
+        <h4>Open Chrome Extensions</h4>
+        <p>Go to <code>chrome://extensions</code> in your browser and enable <code>Developer Mode</code> using the toggle in the top right.</p>
+      </div>
+    </div>
+    <div class="install-step">
+      <div class="install-num">4</div>
+      <div class="install-text">
+        <h4>Load the Extension</h4>
+        <p>Click <code>Load unpacked</code> and select the unzipped folder. Redactron will appear in your toolbar — you're protected! 🛡️</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TEAM -->
+<section id="team">
+  <p class="section-label">Behind Redactron</p>
+  <h2 class="section-title">The Team</h2>
+  <div class="divider"></div>
+  <div class="team-wrap">
+    <div class="team-card">
+      <div class="team-avatar">S</div>
+      <h4>Sahana M</h4>
+      <p>ML · Backend</p>
+    </div>
+    <div class="team-card">
+      <div class="team-avatar">T</div>
+      <h4>Teammate</h4>
+      <p>Extension · UI/UX</p>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  Built with ❤️ for <span>Trust &amp; Security in the AI Era</span> · <span>Redactron</span> © 2026
+</footer>
+
+</body>
+</html>
